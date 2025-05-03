@@ -30,8 +30,9 @@ async def consume_and_classify():
         async for msg in consumer:
             logging.info(f"HATE-SPEECH: Received message: {msg}")
             message = msg.value
-            content = message["content"]
             msg_id = message["id"]
+            group_id = message["group_id"]
+            content = message["content"]
 
             try:
                 prediction = toxigen_hatebert(content)[0]
@@ -44,7 +45,11 @@ async def consume_and_classify():
                 else:
                     logging.info("HATE-SPEECH: Text is neutral")
 
-                response = {"id": msg_id, "is_hate_speech": is_hate}
+                response = {
+                    "id": msg_id, 
+                    "group_id": group_id,
+                    "is_hate_speech": is_hate,
+                }
                 await producer.send_and_wait(OUTPUT_TOPIC, value=response)
                 logging.info(f"HATE-SPEECH: Processed message - {response}")
 
